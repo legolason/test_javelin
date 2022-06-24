@@ -1,0 +1,22 @@
+start = timeit.default_timer()
+c = get_data(['/Users/legolason/Desktop/NGC4395_final_LC/g1_min_zuying.txt'])
+cmod = Cont_Model(c)
+cmod.do_mcmc(set_verbose=True, nwalkers=100, nburn=50, nchain=50, threads=1)
+# cmod.load_chain('contchain.dat'); cmod.get_hpd()
+cmod.show_hist(figout='/Users/legolason/Desktop/NGC4395_final_LC/py2_conthist', figext= 'pdf')
+
+
+cl = get_data(['/Users/legolason/Desktop/NGC4395_final_LC/g1_min_zuying.txt','/Users/legolason/Desktop/NGC4395_final_LC/i1_min_zuying.txt'])
+clmod = Rmap_Model(cl)
+clmod.do_mcmc(conthpd=cmod.hpd,laglimit=[[-30,30]], lagtobaseline=0.3,
+        nwalkers=100,nburn=100,nchain=100,threads=8, fchain='/Users/legolason/Desktop/NGC4395_final_LC/gi1_zuying.dat')
+# clmod.load_chain('linechain.dat'); clmod.get_hpd()
+clmod.show_hist(figout='/Users/legolason/Desktop/NGC4395_final_LC/py2_linehist', figext= 'pdf')
+
+par_best = clmod.hpd[1,:]
+javdata_best = clmod.do_pred(par_best)
+javdata_best.names=cl.names
+javdata_best.plot(set_pred=True,obs=cl,figout='/Users/legolason/Desktop/NGC4395_final_LC/py2_pred', figext= 'pdf')
+
+end = timeit.default_timer()
+print('Fitting finished in : '+str(np.round(end-start))+'s')
